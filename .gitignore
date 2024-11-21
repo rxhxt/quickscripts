@@ -80,3 +80,5 @@ dist/
 *migration.json
 *.zip
 *.jpg
+.DS_Store
+*/.DS_Store

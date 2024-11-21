@@ -91,38 +91,59 @@ document.write('<script> function openCity(evt, cityName) {var i, tabcontent, ta
   'document.getElementById(cityName).style.display = "block";evt.currentTarget.className += " active";evt.currentTarget.setAttribute("aria-selected", "true");} </script>'
 )
 
-document.write('<script defer>document.addEventListener("DOMContentLoaded", function() {' +
-  'const accordions = document.querySelectorAll(".flat-base-accordion");' + // Select all accordion elements
-  'accordions.forEach(function(accordion) {' + // Iterate through each accordion
-      'const button = accordion.querySelector(".accordion__button");' +
-      'const content = accordion.querySelector(".accordion__content");' +
-      'button.addEventListener("click", function() {' +
-          'const isExpanded = button.getAttribute("aria-expanded") === "true";' +
-          'button.setAttribute("aria-expanded", !isExpanded);' +
-          'if (isExpanded) {' +
-              // 'content.style.maxHeight = "0";' +
-              'content.style.display = "block";' +
-              'content.style.padding = "18px";'+
-              'content.style.maxHeight = "fit-content";' +
-         ' content.style.display = "none";'+
-              'content.style.padding = "0 18px";'+
-              'content.classList.add("open--accordion");'+
-          '} else {' +
-              'content.style.display = "block";' +
-              'content.style.padding = "18px";'+
-              'content.style.maxHeight = "fit-content";' +
-              'content.classList.add("close--accordion");'+
-          '}' +
-      '});' +
-  '});' +
-'});<\/script>');
+// document.write('<script defer>document.addEventListener("DOMContentLoaded", function() {' +
+//   'const accordions = document.querySelectorAll(".flat-base-accordion");' + // Select all accordion elements
+//   'accordions.forEach(function(accordion) {' + // Iterate through each accordion
+//       'const button = accordion.querySelector(".accordion__button");' +
+//       'const content = accordion.querySelector(".accordion__content");' +
+//       'button.addEventListener("click", function() {' +
+//           'const isExpanded = button.getAttribute("aria-expanded") === "true";' +
+//           'button.setAttribute("aria-expanded", !isExpanded);' +
+//           'if (isExpanded) {' +
+//               'content.style.maxHeight = "0";' +
+//          ' content.style.display = "none";'+
+//               'content.style.padding = "0 18px";'+
+//               'content.classList.add("open--accordion");'+
+//           '} else {' +
+//               'content.style.display = "block";' +
+//               'content.style.padding = "18px";'+
+//               'content.style.maxHeight = "fit-content";' +
+//               'content.classList.add("close--accordion");'+
+//           '}' +
+//       '});' +
+//   '});' +
+// '});<\/script>');
 
+document.write('<script defer>document.addEventListener("DOMContentLoaded", function() {'+
+  'const accordions = document.querySelectorAll(".accordion__button");'+
+  'accordions.forEach(function(accordion) {'+
+    'accordion.addEventListener("click", function() {'+
+      'const content = this.nextElementSibling;'+
+      'let maxH = content.style.maxHeight;'+
+      'if (maxH === "0px" || maxH === "") {'+
+       ' content.style.maxHeight = "100%";'+
+       'content.style.padding = "2%";'+
+       
+       'content.style.transition= "max-height 0.5s ease-out, padding 0.5s ease-out";'+
+        'this.setAttribute("aria-expanded", "true");'+
+
+        
+     ' } else {'+
+        'content.style.maxHeight = "0";'+
+        'content.style.padding = "0 18px";'+
+       'content.style.transition= "max-height 0.5s ease-out, padding 0.5s ease-out";'+
+
+        'this.setAttribute("aria-expanded", "false");'+
+     ' }'+
+    '});'+
+  '});'+
+'}); <\/script>')
 function getLocations() {
   var cities = content.get('City').getValue().split(',').length
   var countries = content.get('Country').getValue().split(',').length
   if (cities > 1 && (countries > 1 || countries == 1)) {
     var templateHTMLMultiCountries = templateHTMLMulti
-    return templateHTMLMultiCountries.replace('dropbtn', 'dropbtn location-btn').replace('TARGET', formatLocations(content.get('City').getValue(), content.get('Country').getValue())).replace('NAME', 'All Locations ')
+    return templateHTMLMultiCountries.replace('dropbtn', 'dropbtn location-btn').replace('TARGET', formatLocations(content.get('City').getValue(), content.get('Country').getValue())).replace('NAME', 'View All Locations')
   } else {
     var city = content.get('City').getValue()
     var country = content.get('Country').getValue()
@@ -130,26 +151,23 @@ function getLocations() {
   }
 }
 
-
-
 function getFees() {
-  var fee = '' + content.get('Program Fee').publish();
-  if (!fee.includes('|')) {
-    return 'Fees not specified';
-  }
+  var num = 0;
+  var fee = '' + content.get('Program Fee').publish()
   var feeParse = fee.split('|').map(entry => {
-    entry = entry.split(': ');
-    if (entry.length > 1 && entry[1] !== 'N/A') {
-      if (!entry[1].includes('$')) {
-        entry[1] = '$' + entry[1];
-      }
-      return entry.join(': ');
+    entry = entry.split(': ')
+    if (entry.length > 1) {
+      num = 1
     }
-    return 'Fees not specified';
-  });
-  return makeList(feeParse.join('|'), '|');
+    if (entry[num] == '') {
+      entry[num] = 'Fee not specified'
+    } else if (!entry[num].includes('$')) {
+      entry[num] = '$' + entry[num]
+    }
+    return entry.join(': ')
+  })
+  return num ? makeList(feeParse.join('|'), '|') : feeParse.join('|')
 }
-
 
 function getPreReq() {
   var gpa = get('GPA Requirement', (obj) => {
@@ -215,17 +233,16 @@ function showTab(index) {
 
 
 
-var styles = 'aside ul, .info ul {margin-left:1em;}.sock{z-index:1;}.dropbtn{border:none;color:#fff}.dropbtn::after{content:" ▾"}.dropdownWrap{position:relative;display:inline-block}.dropdown-content{overflow-y:auto;display:none;position:absolute;background-color:#f1f1f1;min-width:100%;max-height:300px;box-shadow:0 8px 16px 2px rgba(0,0,0,.2);z-index:1;font-size:.7rem!important}.dropdown-content a{color:#000;padding:12px 16px;text-decoration:none;display:block}.dropdown-content a:hover{background-color:#ddd}.dropdownWrap:hover .dropdown-content{display:block}.dropdownWrap:hover .dropbtn::after{content:"▴"}.dropdownWrap li{list-style:none;text-indent:0;padding-left:0} .callout-card{margin-top: auto !important}' +
+var styles = 'aside ul, .info ul {margin-left:1em;}.sock{z-index:1;}.dropbtn{border:none;color:#fff}.dropbtn::after{content:" ▾"}.dropdownWrap{position:relative;display:inline-block}.dropdown-content{overflow-y:auto;display:none;position:absolute;background-color:#f1f1f1;min-width:160px;max-height:300px;box-shadow:0 8px 16px 2px rgba(0,0,0,.2);z-index:1;font-size:.7rem!important}.dropdown-content a{color:#000;padding:12px 16px;text-decoration:none;display:block}.dropdown-content a:hover{background-color:#ddd}.dropdownWrap:hover .dropdown-content{display:block}.dropdownWrap:hover .dropbtn::after{content:"▴"}.dropdownWrap li{list-style:none;text-indent:0;padding-left:0} .callout-card{margin-top: auto !important}' +
   '.text--white{color:white} .btn-spacing{margin: 4px} .ea-hero-tags{border: solid 1px white; border-radius: 8px; text-align:center; margin:4px;} .hero--program-detail.with-photo{background-color:#001e4f}' +
   '.bg--royal {background-color: #001e4f;} .bg--royal.bg--gradient {background-image: -webkit-gradient(linear, left top, right bottom, from(#001e4f), to(#193460));background-image: linear-gradient(to bottom right, #001e4f, #193460);}' +
-  '.bg--royal .callout {background-color: #193460;border: none;}.program-info.callout{box-shadow: 3px 3px 4px 0 rgb(100 100 100 / 20%);} .program-info dd{margin-bottom:0.5rem;} .fees-btn{border:none;background-color:#aa0000 !important;color:#ffffff !important;}' +
+  '.bg--royal .callout {background-color: #193460;border: none;}.program-info.callout{box-shadow: 3px 3px 4px 0 rgb(100 100 100 / 20%);} .fees-btn{border:none;background-color:#aa0000 !important;color:#ffffff !important;}' +
   '.location-btn{background: inherit;} .tab {overflow: hidden;border: 1px solid #ccc;background-color: #f1f1f1;}' +
   '.tabcontent {display: none;padding: 12px 6px;border: 0px solid #ccc;border-top: none;}.eao-tabs{pointer-events:auto}.eao__tabs__list{display:flex !important;width:auto;justify-content:space-around;}' +
-  '.eao-tabs-button{padding:20px;border: 2px solid transparent;background-color:#f9f9f9;border-radius:5px;font-family:inherit;text-align:center;}.eao-tabs-button.active{color: #000000;border-color: #aa0000;background: #ffffff;pointer-events:none;}.tabs-title{margin-bottom:10px;}.subsection-title{margin-bottom:0px}.subsection-lists{margin:1%}.subsection-text{margin-left:2%; margin-top:1%;}' +
-  '.subsection li{margin:1%;margin-left:3%}.student-journey {max-width: 80%;border-collapse: collapse;table-layout: fixed;display:block;min-height:fit-content;}.student-journey th, .student-journey td {border: 1px solid #ccc;padding: 8px;text-align: left;}.student-journey th {background-color: #004d66;color: white;}' +
-  '.student-journey td {background-color: #ffffff;}.student-journey tbody tr:nth-child(even) {background-color: #ffffff} .accordion__content {padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.5s ease-out, padding 0.5s ease-out;} .subsection{margin:5px;}'+
-  '.accordion__button { transition: background-color 0.5s ease-out;}.accordion__button[aria-expanded="true"] {background-color: #f0f0f0;}.closed--accordion{border: 0px solid white}.open--accordion{ padding: 18px;max-height: fit-content; display: block; }.hidden{display:none;}.tab-section-title{font-weight:bold;font-size:larger;}.budget-btns{display:flex;justify-content: space-evenly;}'+
-  '.visa-overview-text{font-family: Montserrat, Gill Sans, sans-serif;font-size: .9375rem;font-weight: 500;line-height: 1.7;}.visa-blockquote{ font-size: larger;} .side-to-side-blocks{margin-bottom:2%}.finance-btn-div{text-align:center;display:flex;justify-content:space-evenly;}#housing-policy-content{padding:18px;}'
+  '.eao-tabs-button{padding:20px;border: 2px solid transparent;background-color:#f9f9f9;border-radius:5px;font-family:inherit;text-align:center;}.eao-tabs-button.active{color: #000000;border-color: #aa0000;background: #ffffff;pointer-events:none;}.tabs-title{margin-bottom:10px;}.subsection-title{margin-bottom:0px}.subsection-lists{margin:1%}.subsection-text{margin-left:2%}' +
+  '.subsection li{margin:1%;margin-left:3%; margin-bottom:2%;}.student-journey {max-width: 80%;border-collapse: collapse;table-layout: fixed;display:block;min-height:fit-content;}.student-journey th, .student-journey td {border: 1px solid #ccc;padding: 8px;text-align: left;}.student-journey th {background-color: #004d66;color: white;}' +
+  '.student-journey td {background-color: #ffffff;}.student-journey tbody tr:nth-child(even) {background-color: #ffffff} .accordion__content {padding: 0 18px;background-color: white;max-height: 0;overflow: hidden;transition: max-height 0.5s ease-out, padding 0.5s ease-out;}'+
+  '.accordion__button { content: "▾" !important; transition: background-color 0.5s ease-out;}.accordion__button[aria-expanded="true"] {background-color: #f0f0f0; content: "\\f078";transform: rotate(180deg);}.closed--accordion{border: 0px solid white}.open--accordion{ padding: 2%; }.hidden{display:none;}.tab-section-title{font-weight:bold;font-size:larger;}.subsection-para{line-height: 1.7;text-align: justify;margin: 15px 0;}'
 appendToHtmlTag('head', 'style', styles, 'saStyles')
 
 writeHtml([
@@ -259,7 +276,7 @@ writeHtml([
   '</div>',
   '</div>',
   '<div class="cell medium-4">', //image
-  '<img loading="eager" sizes="100vw" src="' + imgStr(41) + '"' + 'srcset="' + imgStr(45) + ' 500w, ' + imgStr(41) + ' 768w, ' + imgStr(45) + ' 1600w, ' + imgStr(44) + ' 1900w," alt="None">',
+  '<img loading="eager" style="min-height:80%;" sizes="100vw" src="' + imgStr(44) + '"' + 'srcset="' + imgStr(45) + ' 500w, ' + imgStr(44) + ' 768w, ' + imgStr(45) + ' 1600w, ' + imgStr(44) + ' 1900w," alt="None">',
   '</div>',
   '</div>',
   '</div>',
@@ -280,7 +297,6 @@ writeHtml([
   get('Program Website')?('<li class="funderline"><a href="' + get('Program Website') + '" Title="Visit the Program Website">Program Website</a></li>'):'<span class="hidden">No valid link given</span>',
   get('CTA Link Title')?('<li class="funderline"><a href="' + get('CTA Link') + '" Title="Join Canvas">' + get('CTA Link Title') + '</a></li>'):'<span class="hidden">No valid link given</span>',
   '</ul>',
-  '<a href="' + get('Link to Apply') + '" class="btn">Apply Now</a>',
   '</div>',
   '</div>',
   '<div class="cell medium-4" >',
@@ -294,6 +310,7 @@ writeHtml([
   '</div>',
   '</aside>',
   '<div class="external" style="text-align:center;margin-top:5%;">',
+  '<a href="' + get('Link to Apply') + '" class="btn">Apply Now</a>',
   '</div>',
   '</div>',
   '</div>',
@@ -316,39 +333,45 @@ writeHtml([
   '<div class="grid-x grid-margin-x">',
   '<div  class="cell medium-auto info">',
   '<div class="grid-container">',
-  '<div class="grid-x grid-margin-x side-to-side-blocks">', //
-
-  '<div class="cell medium-8 info">', //left
+  '<div class="grid-x grid-margin-x">',
+  '<div  class="cell medium-8 info">', //left
   '<div class="subsection"><h3 class="subsection-title mt-2">Program Specific Information</h3>',
   '<div class="subsection-text">',
-  get('Course(s)') ? ('<dt>Course(s):</dt><dd>'  +get('Course(s)', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) + '</dd>') : '<span class="hidden">No valid text given</span>',
-  get('Program Specific Information') ? ('<dt>Program Highlights:</dt><dd>' + get('Program Specific Information', makeList, noInfoFoundPTag) + '</dd>') : '<span class="hidden">No valid text given</span>',
-  (!get('Course(s)') && !get('Program Specific Information')) ? '<div>Program specific information not available</div>' : '',
+  get('Course(s)') ? ('<dt>Course(s):</dt><dd>' + get('Course(s)') + '</dd>') : '<span class="hidden">No valid text given</span>', //undefined
+  get('Program Specific Information') ? ('<dt>Program Features:</dt><dd>' + get('Program Specific Information',makeList, noInfoFoundPTag) + '</dd>') : '<span class="hidden">No valid text given</span>',
+  '</div>',
+  // '<div class="subsection">',
+  // '<dl>',
+  // '<dt> Contact </dt>',
+  // get('Contact Name')?'<dd>Name: '+get('Contact Name', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) +'</dd>':'<span class="hidden">No valid text given</span>',
+  // // '<dd>Email address: </dd>',
+  // get('Contact Email')?'<dd>Email: '+get('Contact Email', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) +'</dd>':'<span class="hidden">No valid text given</span>',
+  // '</dl>',
+  // '</div>',
   '</div>',
   '</div>',
-  '</div>',
-  '<div class="cell medium-4 info">', //right
+  '<div  class="cell medium-4 info">', //right
   '<aside class="callout callout-card">',
   '<div class="global-spacing--0x">',
   // '<h2 class="eyebrow"></h2>',
-  // get('Contact Name', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified'))
   '<dl class="global-spacing--0x">',
   '<dt>Pre-Requisites</dt><dd>' + getPreReq() + '</dd>',
   '<dt>Model</dt><dd>' + get('Model', makeList, noInfoFoundPTag) + '</dd>',
-  get('Contact Name')?['<dt> Contact </dt>','<dd>Name: '+get('Contact Name', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) +'</dd>']:'<span class="hidden">No valid text given</span>',
+  // '<dt>Level of Immersion</dt>',
+  '<dt> Contact </dt>',
+  get('Contact Name')?'<dd>Name: '+get('Contact Name', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) +'</dd>':'<span class="hidden">No valid text given</span>',
+  // '<dd>Email address: </dd>',
   get('Contact Email')?'<dd>Email: '+get('Contact Email', (text) => { return makeList('' + text.publish(), ';', 'ul') }, () => makeList('Information not specified')) +'</dd>':'<span class="hidden">No valid text given</span>',
+  
   '</dl>',
   '</div>',
   '</aside>',
   '</div>',
   '</div>',
-  '<blockquote class="subsection">',
-  '<div class="subsection">',
-  '<h3 class="subsection-title">Level of Immersion</h3>',
-  '<dd>Language(s) of Instruction:</dd>',
-  get('Language(s) of Instruction') ? ('<dd>' + get('Language(s) of Instruction',makeList, noInfoFoundPTag) + '</dd>') : '<span class="hidden">No valid text given</span>',
-  '</div>',
-  '<h3 class="subsection-title">Features</h3>',
+  '<blockquote class="subsection"><h3 class="subsection-title">Level of Immersion</h3>',
+  '<div class="subsection-text"><strong>Language(s) of Instruction: </strong></div>',
+  get('Language(s) of Instruction') ? ('<div class="subsection-text">' + get('Language(s) of Instruction',makeList, noInfoFoundPTag) + '</div>') : '<span class="hidden">No valid text given</span>',
+  '<div class="subsection-text"><strong>Features </strong></div>',
   '<div>' + get('Additional Features', makeList, noInfoFoundPTag) + '</div>',
   '</blockquote>',
   '<div class="subsection"><h3 class="subsection-title">Housing Abroad</h3>',
@@ -363,17 +386,16 @@ writeHtml([
   // '<dt><h3>Eligibility</h3></dt>',
   // '<dd>' + getPreReq() + '</dd>',
   '<div class="global-spacing--5x">', // acc start
-  '<div class="accordion flat-base-accordion" id="housing-su-accordion">', // changed from close--accordion to open--accordion
-  '<button id="housing-su-button"  aria-controls="housing-policy-content" aria-expanded="true" data-toggle-type="menu" aria-label="Additional Fees" class="accordion__button btn btn--small">',
-  '<span class="accordion__button-text">Housing at Seattle University</span>',
+  '<div class="accordion flat-base-accordion close--accordion" id="housing-su-accordion">',
+  '<button id="housing-su-button"  aria-controls="housing-policy-content" aria-expanded="false" data-toggle-type="menu" aria-label="Additional Fees" class="accordion__button btn btn--small">',
+  '<span class="accordion__button-text">Housing</span>',
   '</button>',
-  '<div class="panel accordion__content open--accordion" id="housing-policy-content">',
-  // '<h3 class="subsection-title">Housing at Seattle University</h3>',
-  '<p class="subsection-text">Moving can be both costly and stressful, but careful planning can help minimize both. Start by creating a housing plan for before and after your study abroad experience to avoid the pressure of continuing to pay for rent at home. Program fees typically cover housing abroad, so if you expect to incur additional domestic rent expenses, be sure to include these in your budget. If possible, consider staying with family or friends temporarily before you depart or when you return to save on costs.</p>',
-  '<h4 class="subsection-title">Housing Residence Life</h4>',
-  '<p class="subsection-text">Education Abroad typically recommends considering Seattle University on-campus housing for when students return from their programs, as Housing Residence Life staff are able to support students in securing housing, while adhering to student preference as best as they can.</p>',
-  '<h4 class="subsection-title">Housing Application</h4>',
-  '<p>Check the Housing Portal for more specific dates</p>',
+  '<div class="panel accordion__content" id="housing-policy-content">',
+  '<h3>Housing at Seattle University</h3>',
+  '<p>Moving can be both costly and stressful, but careful planning can help minimize both. Start by creating a housing plan for before and after your study abroad experience to avoid the pressure of continuing to pay for rent at home. Program fees typically cover housing abroad, so if you expect to incur additional domestic rent expenses, be sure to include these in your budget. If possible, consider staying with family or friends temporarily before you depart or when you return to save on costs.</p>',
+  '<h4>Housing Residence Life</h4>',
+  '<p>Education Abroad typically recommends considering Seattle University on-campus housing for when students return from their programs, as Housing Residence Life staff are able to support students in securing housing, while adhering to student preference as best as they can.</p>',
+  '<p><strong>Housing Application</strong> (check the Housing Portal for more specific dates)</p>',
   '<ul>',
   '<li>Winter Quarter Housing applications open in November</li>',
   '<li>Spring Quarter Housing applications open in February</li>',
@@ -418,8 +440,8 @@ writeHtml([
   '<span class="accordion__button-text">Academic Policy</span>',
   '</button>',
   '<div class="panel accordion__content" id="academic-policy-content">',
-  '<h3 class="subsection-title">Academic Policy & Minimum Grade Requirement:</h3>',
-  '<ul class="subsection-text visa-overview-text">',
+  '<h3>Academic Policy & Minimum Grade Requirement:</h3>',
+  '<ul>',
   '<li>Student will receive transfer credit for their study abroad program and academic grades will not be reflected on their Seattle University transcript and will not be reflected in the Seattle University GPA nor honors calculations.</li>',
   '<li>For all undergraduate programs, courses accepted in transfer are graded at least a C- when letter grades are issued and at least a 1.5 on the decimal grading system. Courses graded D+ or lower (1.5) will not be allowed either for transfer credit or to fulfill degree requirements.</li>',
   '<li>Students in the College of Nursing, the College of Science and Engineering, and communication and psychology majors in the College of Arts and Sciences will be required to repeat courses graded lower than C (2.0) if the course is a major requirement or if it is a prerequisite to a major requirement.</li>',
@@ -434,10 +456,10 @@ writeHtml([
   '<span class="accordion__button-text"> Transfer of Credit & Placeholder Course</span>',
   '</button>',
   '<div class="panel accordion__content" id ="transfer-policy-content">',
-  '<h3 class="subsection-title">Transfer Credits</h3>',
-  '<p class="subsection-text">Letter grades received on this program will not transfer to SU nor factor into Seattle University GPA. If students receive the minimum grade required, credits will transfer toward their Seattle University degree as approved through the required pre-departure Course Approval process. Minimum grade details will be specified during Course Approval for each course taken abroad.</p>',
-  '<h3 class="subsection-title">Placeholder Course</h3>',
-  '<p class="subsection-text">The Education Abroad Office will enroll students in a 12-credit placeholder course per term that you are abroad so that students maintain full-time student status and are billed properly. This placeholder course will be replaced by the courses taken abroad upon successful completion and receipt of official transcript.</p>',
+  '<h3>Transfer Credits</h3>',
+  '<p>Letter grades received on this program will not transfer to SU nor factor into Seattle University GPA. If students receive the minimum grade required, credits will transfer toward their Seattle University degree as approved through the required pre-departure Course Approval process. Minimum grade details will be specified during Course Approval for each course taken abroad.</p>',
+  '<h3>Placeholder Course</h3>',
+  '<p>The Education Abroad Office will enroll students in a 12-credit placeholder course per term that you are abroad so that students maintain full-time student status and are billed properly. This placeholder course will be replaced by the courses taken abroad upon successful completion and receipt of official transcript.</p>',
   '</div>',
   '</div>',
   '</div>',//acc end
@@ -448,28 +470,26 @@ writeHtml([
   '<div class="global-spacing--2x">',
   '<div class="subsection"><h3 class="subsection-title">Program Fees</h3>',
   '<p class="subsection-text">Program fees are subject to change and based on previous year\'s tuition, if future tuition rates are not available yet. The purpose of the budget worksheets is to provide an estimate of how much studying abroad is going to cost. Actual spending may vary.</p>',
-  '<p class="subsection-lists">' + getFees() + '</p>',
-  '</div>',
+  '<p class="subsection-lists">' + getFees() + '</p></div>',
   '<div><h3 class="subsection-title">Requesting a Financial Aid Estimate</h3>',
   '<p class="subsection-text">Student Financial Aid allows students to request a financial aid estimate when planning an education abroad experience. Students can bring the completed worksheet of your preferred program to a meeting with a Student Financial Aid Counselor. <p></div>',
   '<div class="subsection"><h3 class="subsection-title">Budget Worksheets</h3>',
-  buddgetArray.length > 0 ? ['<div class="global-spacing--2x budget-btns">',
+  buddgetArray.length > 0 ? ['<div class="global-spacing--2x">',
     // '<dt><h4>Budgets by Term</h4></dt>',
     buddgetArray,
-    '</div>', '</div>'] : '<span class="hidden">No valid buttons given</span>',,
+    '</div>', '</div>'] : undefined,
+  '<div><h3 class="subsection-title">Participation Costs</h3></div>',
+  get('Participation Costs') ? ('<div class="subsection-para">' + get('Participation Costs') + '</div>') : '<span class="hidden">No valid text given</span>',
+  get('Payment') ? ('<div class="subsection-para">' + get('Payment') + '</div>') : '<span class="hidden">No valid text given</span>',
   
-  get('Participation Costs') ? (['<div><h3 class="subsection-title">Participation Costs</h3></div>','<div class="subsection-text">' + get('Participation Costs') + '</div>']) : '<span class="hidden">No valid text given</span>',
-  get('Payment') ? (['<div><h3 class="subsection-title">Payment</h3></div>','<div class="subsection-text">' + get('Payment') + '</div>']) : '<span class="hidden">No valid text given</span>',
-  
-  get('Insurance') ? (['<div><h3 class="subsection-title">Insurance</h3></div>','<div>' + get('Insurance') + '</div>']) : '<span class="hidden">No valid text given</span>',
+  get('Insurance') ? ('<div><h3 class="subsection-title">Insurance</h3></div><div class="subsection-para">' + get('Insurance') + '</div>') : '<span class="hidden">No valid text given</span>',
   '<div><h3 class="subsection-title">Scholarships</h3>',
   // '<p>There are many study abroad scholarships for all program types. The application process may be easier than you think, but planning ahead is key. Deadlines are often 6-8 months in advance of departure. Check out the <a heref="'+get('Program Scholarships')+'">Scholarship section</a> of Seattle University Education Abroad website for more information on scholarships and how to apply. </p>',
   '<p>There are many study abroad scholarships for all program types. The application process may be easier than you think, but planning ahead is key. Deadlines are often 6-8 months in advance of departure. Check out the Scholarship section of Seattle University Education Abroad website for more information on scholarships and how to apply. </p>',
   // [Program Scholarships/Column BF]
   '</div>',
-  '<div class="section-heading__link global-spacing--2x oho-animate fade-in finance-btn-div">',
+  '<div style="text-align:center;" class="section-heading__link global-spacing--2x oho-animate fade-in">',
   //button with href
-  '<a href="https://www.seattleu.edu/academics/education-abroad/students/financial-planning/scholarships/">Scholarship Opportunities</a>',
   '<a href="https://www.seattleu.edu/academics/education-abroad/students/financial-planning/estimated-cost-comparison-calculator/">Cost Comparison Calculator</a>',
   '</div>',
   '</div>',
@@ -512,32 +532,21 @@ writeHtml([
   '<div class="subsection-title"><h3>Application Steps</h3></div>',
   get('Application Instructions', (text) => { return makeList('' + text.publish(), '|', 'ol') }, () => makeList('Information not specified')),('If you haven’t joined the Education Abroad Canvas Course yet, ' + ('Join Now!'.wrap([{ attributes: 'href="https://forms.office.com/Pages/ResponsePage.aspx?id=UuAQvBywSUiZZ-5-x0_J2CrqSVSnPn9KtGVI66pTpfNUNTZYMTFSWUsxVlIxUFU1TVhLQkEzQlFZSyQlQCN0PWcu"', tag: 'a' }])) + '').wrap('p'),
   '<div class="subsection-title"><h3>Visa Requirements</h3>',
-  '<blockquote><h4> What is a Visa?</h4>',
-  '<p class="subsection-text visa-blockquote">A visa is a permission granted by a country that allows foreign nationals to enter and reside there temporarily. Applicants typically need to provide documentation such as an acceptance letter from the educational institution, proof of financial means, and health insurance. Student visas come with specific regulations regarding work rights, travel restrictions, and duration of stay, varying by country.</p>',
+  '<blockquote class="subsection"><h4 class="subsection-title">What is a Visa</h4>',
+  '<p >A visa is a permission granted by a country that allows foreign nationals to enter and reside there temporarily. Applicants typically need to provide documentation such as an acceptance letter from the educational institution, proof of financial means, and health insurance. Student visas come with specific regulations regarding work rights, travel restrictions, and duration of stay, varying by country.</p>',
   '</blockquote>',
-  get('Visa Overview') ? ('<div class="wysiwyg visa-overview-text">' + get('Visa Overview') + '</div>') : '<span class="hidden">No valid text given</span>',
+  get('Visa Overview') ? ('<div class="subsection-para">' + get('Visa Overview') + '</div>') : '<span class="hidden">No valid text given</span>',
   '</div>',
   '</div>',
   '</div>',
   '<div id="country-profile-tab" class="tabcontent">', // Tab 5: Country Profile
   '<div class="global-spacing--5x">',
-  
-   get('Climate')?(['<div class="subsection"><h3 class="subsection-title"> Climate </h3>','<div class="subsection-text"><p>'+ get('Climate',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-  // '<h3> Travel Resources </h3>',
-  get('Travel Resources')?(['<div class="subsection"><h3 class="subsection-title"> Travel Resources </h3>','<div class="subsection-text"><p>'+ get('Travel Resources',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-
-  // '<h3> Cultural Resources </h3>',
-  get('Cultural Resources')?(['<div class="subsection"><h3 class="subsection-title"> Cultural Resources </h3>','<div class="subsection-text"><p>'+ get('Cultural Resources',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-  
-  // '<h3> Food & Diet </h3>',
-  get('Food & Diet')?(['<div class="subsection"><h3 class="subsection-title"> Food & Diet </h3>','<div class="subsection-text"><p>'+ get('Food & Diet',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-
-  // '<h3> Embassy/Consulate </h3>',
-  get('Embassy')?(['<div class="subsection"><h3 class="subsection-title"> Embassy/Consulate </h3>','<div class="subsection-text"><p>'+ get('Embassy',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-  
-  // '<h3> Identity-Specific Considerations </h3>',
-  get('Identity-Specific Considerations')?(['<div class="subsection"><h3 class="subsection-title"> Identity-Specific Considerations </h3>','<div class="subsection-text"><p>'+ get('Identity-Specific Considerations',(text) => { return makeList('' + text.publish(), '|', 'ul') }, () => makeList('Information not specified'))+'</p></div></div>']):'<span class="hidden">No valid text given</span>',
-
+  '<h3> Climate </h3>',
+  '<h3> Travel Resources </h3>',
+  '<h3> Cultural Resources </h3>',
+  '<h3> Food & Diet </h3>',
+  '<h3> Embassy/Consulate </h3>',
+  '<h3> Identity-Specific Considerations </h3>',
 
   '</div>',
   '</div>',

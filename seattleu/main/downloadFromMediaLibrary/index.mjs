@@ -1,4 +1,5 @@
 import { UI, exists } from '../promptUI/UI.mjs'
+// quickscripts/seattleu/main/promptUI/UI.mjs
 import { Client, batcher } from '../../../../t4apiwrapper/t4.ts/esm/index.js'
 import { writeFile, mkdir, rm } from 'fs/promises'
 import { resolve } from 'path'
@@ -34,13 +35,29 @@ async function main(instance) {
   const parseChildren = (path, children) => {
     children.forEach(child => {
       const { id, name, children } = child
+      console.log(`Parsing ${name}...${id}....${path}`)
       if (child.children.length > 0) parseChildren(`${path}/${name}/`, children)
       collectionObjs.push({ id, name, path })
     })
   }
-
+  if (!await exists('./output/')) {
+    await mkdir('./output/', { recursive: true })
+  }
   try {
     const children = (await mediaCategory.list(mediaCategoryId, 'en'))[0].children
+    const categoryName = (await mediaCategory.list(mediaCategoryId, 'en'))[0].name
+
+    // const tempVal = (await media.list(mediaCategoryId)).mediaRows
+    // await batcher(tempVal, 10, 1000, async(row) => {
+    //   try {
+    //     // await downloadMedia(media, row, resolve(`${collectionObj.path}/${collectionObj.name}`))
+    //     console.log(`Downloaded ${row.name}`)
+    //   } catch(e) {
+    //     console.log(`Failed to download ${row.name} due to `, e)
+    //   }
+    // })
+    collectionObjs.push({ id: mediaCategoryId, name: categoryName, path: './output/' })
+    console.log('Downloading media...')
     parseChildren('./output/', children)
     await Promise.all(collectionObjs.map(async obj => {
       try {
