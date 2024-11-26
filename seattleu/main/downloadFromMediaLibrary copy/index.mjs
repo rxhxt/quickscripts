@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { UI, exists } from '../promptUI/UI.mjs'
 // quickscripts/seattleu/main/promptUI/UI.mjs
 import { Client, batcher } from '../../../../t4apiwrapper/t4.ts/esm/index.js'
@@ -69,15 +70,26 @@ async function main(instance) {
   }
 
   for (let collectionObj of collectionObjs) {
-    const mediaRows = (await media.list(collectionObj.id)).mediaRows
-    await batcher(mediaRows, 10, 1000, async(row) => {
-      try {
-        await downloadMedia(media, row, resolve(`${collectionObj.path}/${collectionObj.name}`))
-        console.log(`Downloaded ${row.name} to ${collectionObj.name}`)
-      } catch(e) {
-        console.log(`Failed to download ${row.name} to ${collectionObj.name} due to `, e)
-      }
-    })
+    let offset = 0;
+    const limit = 10;
+    let total_media = 0;
+
+    do {
+      const req = await media.list(collectionObj.id, 'en', offset, limit);
+      const mediaRows = req.mediaRows;
+      total_media = req.recordsTotal;
+
+      await batcher(mediaRows, 20, 1000, async(row) => {
+        try {
+          await downloadMedia(media, row, resolve(`${collectionObj.path}/${collectionObj.name}`));
+          console.log(`Downloaded ${row.name} to ${collectionObj.name}`);
+        } catch(e) {
+          console.log(`Failed to download ${row.name} to ${collectionObj.name} due to `, e);
+        }
+      });
+
+      offset += limit;
+    } while (offset < total_media);
   }
 
   console.log('Creating Zip file...')
